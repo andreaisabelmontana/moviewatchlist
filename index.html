@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MovieWatchlist · Track what you've watched & what's next</title>
+<meta name="description" content="MovieWatchlist is a Flask app for tracking movies you've watched and want to watch, searching a film catalog, and getting simple recommendations. An interactive project showcase." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#14121a;
+    --paper:#f5f4f7;
+    --paper-2:#eae8ee;
+    --line:#d9d6e0;
+    --accent:#7a3ea8;     /* cinema purple */
+    --gold:#c8902a;
+    --good:#2f8f63;
+    --muted:#67637240;
+    --muted2:#666272;
+    --shadow:0 1px 0 rgba(0,0,0,.04), 0 18px 40px -28px rgba(20,18,26,.5);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Inter",system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:500;line-height:1.08;letter-spacing:-.01em}
+  a{color:var(--accent);text-decoration:none}
+  code,.mono{font-family:"JetBrains Mono",monospace}
+
+  header.bar{position:sticky;top:0;z-index:30;background:rgba(245,244,247,.85);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .bar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{font-family:"Fraunces",serif;font-size:1.05rem;display:flex;align-items:center;gap:9px}
+  nav.links a{color:var(--muted2);font-size:.86rem;margin-left:22px;font-weight:500}
+  nav.links a:hover{color:var(--ink)}
+  @media(max-width:760px){nav.links{display:none}}
+
+  .hero{padding:84px 0 60px;border-bottom:1px solid var(--line)}
+  .kicker{font-family:"JetBrains Mono",monospace;font-size:.74rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 18px}
+  .hero h1{font-size:clamp(2.4rem,5.4vw,4.2rem);margin:0 0 20px;max-width:15ch}
+  .hero p.lede{font-size:1.18rem;max-width:60ch;color:#28242f;margin:0 0 30px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;
+    font-weight:600;font-size:.9rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+    transition:transform .15s ease}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.ghost{background:transparent;color:var(--ink)}
+
+  /* ---- watchlist demo ---- */
+  .demo{margin-top:52px;background:#fff;border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--shadow);overflow:hidden}
+  .demo .top{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);
+    background:var(--paper-2);flex-wrap:wrap}
+  .search{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:6px 14px}
+  .search input{border:none;outline:none;font-size:.86rem;width:100%;background:transparent;font-family:inherit}
+  .counts{font-family:"JetBrains Mono",monospace;font-size:.74rem;color:var(--muted2)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px}
+  @media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}}
+  .movie{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+  .poster{aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;position:relative}
+  .poster .rate{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:var(--gold);
+    font-family:"JetBrains Mono",monospace;font-size:.66rem;padding:2px 6px;border-radius:5px}
+  .poster .badge{position:absolute;bottom:6px;left:6px;font-family:"JetBrains Mono",monospace;font-size:.6rem;
+    font-weight:700;padding:2px 7px;border-radius:5px;color:#fff}
+  .badge.tw{background:var(--accent)}.badge.wd{background:var(--good)}
+  .minfo{padding:9px 10px}
+  .minfo .ti{font-weight:600;font-size:.84rem;line-height:1.2}
+  .minfo .me{font-size:.72rem;color:var(--muted2);margin-top:2px}
+  .mbtn{display:flex;border-top:1px solid var(--line)}
+  .mbtn button{flex:1;border:none;background:#fff;font-size:.72rem;font-weight:600;padding:8px 4px;cursor:pointer;color:var(--muted2);transition:.12s}
+  .mbtn button:first-child{border-right:1px solid var(--line)}
+  .mbtn button.on-tw{background:var(--accent);color:#fff}
+  .mbtn button.on-wd{background:var(--good);color:#fff}
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted2);padding:30px 0;font-size:.9rem}
+  .recos{padding:0 16px 18px}
+  .recos .lbl{font-family:"JetBrains Mono",monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted2);margin:0 0 8px}
+  .recos .strip{display:flex;gap:8px;flex-wrap:wrap}
+  .reco{font-size:.78rem;padding:6px 11px;border-radius:999px;background:var(--paper-2);border:1px solid var(--line)}
+  .reco.none{color:var(--muted2)}
+
+  section{padding:74px 0;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted2);margin:0 0 12px}
+  h2{font-size:clamp(1.8rem,3.6vw,2.6rem);margin:0 0 14px}
+  .section-lede{max-width:62ch;color:#2b2733;font-size:1.05rem}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  @media(max-width:760px){.grid3{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+  .card .ic{font-size:1.5rem}
+  .card h3{font-size:1.14rem;margin:10px 0 6px}
+  .card p{margin:0;font-size:.92rem;color:#403b48}
+
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .chip{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:.85rem;font-weight:500}
+
+  footer{padding:48px 0 70px}
+  footer .wrap{color:var(--muted2);font-size:.85rem}
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand">🎬 MovieWatchlist</div>
+    <nav class="links">
+      <a href="#features">Features</a>
+      <a href="#stack">Stack</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="kicker">Flask Web App · TMDB · Deployed on Azure</p>
+    <h1>Keep track of every film — seen and unseen.</h1>
+    <p class="lede">MovieWatchlist lets you track the movies you've watched and the ones you want to watch, search a film catalog, and get simple recommendations based on your taste.</p>
+    <div class="cta">
+      <a class="btn" href="#features">See features →</a>
+      <a class="btn ghost" href="#stack">The stack</a>
+    </div>
+
+    <div class="demo" id="demo">
+      <div class="top">
+        <div class="search"><span aria-hidden="true">🔍</span><input id="q" type="text" placeholder="Search films…" aria-label="Search films" /></div>
+        <div class="counts" id="counts"></div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="recos">
+        <p class="lbl">Recommended for you</p>
+        <div class="strip" id="recos"></div>
+      </div>
+    </div>
+    <p style="font-size:.8rem;color:var(--muted2);margin-top:10px">↑ A scripted illustration — mark films “to watch” or “watched” and recommendations adapt to your taste.</p>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap reveal">
+    <p class="eyebrow">01 — Features</p>
+    <h2>Your personal film diary.</h2>
+    <div class="grid3">
+      <div class="card"><div class="ic">🔖</div><h3>Watchlist</h3><p>Save the films you want to watch and come back to them later.</p></div>
+      <div class="card"><div class="ic">✅</div><h3>Watched history</h3><p>Mark what you've seen and build up your viewing history.</p></div>
+      <div class="card"><div class="ic">🔍</div><h3>Catalog search</h3><p>Search a film catalog (powered by TMDB) to find what to add.</p></div>
+      <div class="card"><div class="ic">✨</div><h3>Recommendations</h3><p>Get simple suggestions based on what you've watched.</p></div>
+      <div class="card"><div class="ic">🔐</div><h3>Accounts</h3><p>Your lists are private to your account.</p></div>
+      <div class="card"><div class="ic">📈</div><h3>Production-ready</h3><p>Tests with coverage, Docker, Prometheus metrics, Azure deploy.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="wrap reveal">
+    <p class="eyebrow">02 — Stack</p>
+    <h2>Built with.</h2>
+    <div class="chips">
+      <span class="chip">🌶 Flask (Python)</span>
+      <span class="chip">🗄 PostgreSQL (Azure)</span>
+      <span class="chip">🎞 TMDB API</span>
+      <span class="chip">🧪 pytest + coverage</span>
+      <span class="chip">🐳 Docker</span>
+      <span class="chip">📊 Prometheus</span>
+      <span class="chip">☁️ Azure Web App</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    MovieWatchlist · an interactive project showcase, built from scratch.
+    Catalog data in the demo is sample data.
+  </div>
+</footer>
+
+<script>
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  const MOVIES=[
+    {t:'Interstellar',y:2014,r:8.6,g:'Sci-fi',c:'linear-gradient(160deg,#1b2a4a,#37557f)',e:'🚀'},
+    {t:'Parasite',y:2019,r:8.5,g:'Thriller',c:'linear-gradient(160deg,#2a2a2a,#5a4a3a)',e:'🏠'},
+    {t:'Spirited Away',y:2001,r:8.6,g:'Animation',c:'linear-gradient(160deg,#2f6f5e,#6fae8f)',e:'🐉'},
+    {t:'The Matrix',y:1999,r:8.7,g:'Sci-fi',c:'linear-gradient(160deg,#0e2a12,#1f6b2f)',e:'💊'},
+    {t:'Amélie',y:2001,r:8.3,g:'Romance',c:'linear-gradient(160deg,#7a2f3a,#c4622a)',e:'💛'},
+    {t:'Whiplash',y:2014,r:8.5,g:'Drama',c:'linear-gradient(160deg,#3a2f12,#a8862a)',e:'🥁'},
+    {t:'Coco',y:2017,r:8.4,g:'Animation',c:'linear-gradient(160deg,#5a2f7a,#c4622a)',e:'🎸'},
+    {t:'Knives Out',y:2019,r:7.9,g:'Mystery',c:'linear-gradient(160deg,#2a3a2a,#6a7a4a)',e:'🔪'},
+  ];
+  // status: undefined | 'tw' (to-watch) | 'wd' (watched)
+  const status={};
+  const grid=document.getElementById('grid');
+  const counts=document.getElementById('counts');
+  const recos=document.getElementById('recos');
+  const q=document.getElementById('q');
+
+  function card(m,i){
+    const s=status[i];
+    const badge = s==='tw'?'<span class="badge tw">TO WATCH</span>':s==='wd'?'<span class="badge wd">WATCHED</span>':'';
+    return `<div class="movie" data-i="${i}">
+      <div class="poster" style="background:${m.c}">${m.e}<span class="rate">★ ${m.r}</span>${badge}</div>
+      <div class="minfo"><div class="ti">${m.t}</div><div class="me">${m.y} · ${m.g}</div></div>
+      <div class="mbtn">
+        <button data-act="tw" class="${s==='tw'?'on-tw':''}">＋ Watchlist</button>
+        <button data-act="wd" class="${s==='wd'?'on-wd':''}">✓ Watched</button>
+      </div></div>`;
+  }
+  function render(){
+    const term=q.value.trim().toLowerCase();
+    const items=MOVIES.map((m,i)=>({m,i})).filter(({m})=>!term||(m.t+' '+m.g).toLowerCase().includes(term));
+    grid.innerHTML = items.length? items.map(({m,i})=>card(m,i)).join('') : '<div class="empty">No films match your search.</div>';
+    const tw=Object.values(status).filter(v=>v==='tw').length, wd=Object.values(status).filter(v=>v==='wd').length;
+    counts.textContent=`🔖 ${tw} to watch · ✓ ${wd} watched`;
+    renderRecos();
+  }
+  function renderRecos(){
+    // favourite genres = genres of watched films
+    const fav=new Set(MOVIES.filter((m,i)=>status[i]==='wd').map(m=>m.g));
+    let recs=MOVIES.map((m,i)=>({m,i})).filter(({m,i})=>!status[i] && fav.has(m.g)).slice(0,4);
+    if(!recs.length){ recos.innerHTML='<span class="reco none">Mark a film as watched to get recommendations.</span>'; return; }
+    recos.innerHTML=recs.map(({m})=>`<span class="reco">${m.e} ${m.t} <span style="color:var(--muted2)">· ${m.g}</span></span>`).join('');
+  }
+  grid.addEventListener('click',e=>{
+    const b=e.target.closest('button[data-act]'); if(!b) return;
+    const i=+b.closest('.movie').dataset.i; const act=b.dataset.act;
+    status[i] = status[i]===act ? undefined : act;
+    render();
+  });
+  q.addEventListener('input',render);
+  // seed: Parasite + The Matrix watched, Coco on the watchlist → recommends unseen Sci-fi (Interstellar)
+  status[1]='wd'; status[3]='wd'; status[6]='tw';
+  render();
+</script>
+</body>
+</html>
