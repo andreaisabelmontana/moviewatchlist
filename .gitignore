@@ -5,3 +5,16 @@ Thumbs.db
 node_modules/
 dist/
 build/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Local SQLite databases
+*.db
+*.sqlite
+*.sqlite3

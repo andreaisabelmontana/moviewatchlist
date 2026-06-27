@@ -1,0 +1,42 @@
+[
+  {"title": "Interstellar", "year": 2014, "runtime": 169, "genres": ["Sci-Fi", "Adventure", "Drama"], "tags": ["space", "time", "father-daughter", "physics", "epic"]},
+  {"title": "The Matrix", "year": 1999, "runtime": 136, "genres": ["Sci-Fi", "Action"], "tags": ["dystopia", "simulation", "philosophy", "cyberpunk", "chosen-one"]},
+  {"title": "Blade Runner 2049", "year": 2017, "runtime": 164, "genres": ["Sci-Fi", "Drama", "Mystery"], "tags": ["dystopia", "android", "noir", "identity", "slow-burn"]},
+  {"title": "Arrival", "year": 2016, "runtime": 116, "genres": ["Sci-Fi", "Drama", "Mystery"], "tags": ["aliens", "language", "time", "cerebral", "first-contact"]},
+  {"title": "Dune", "year": 2021, "runtime": 155, "genres": ["Sci-Fi", "Adventure"], "tags": ["space", "desert", "epic", "prophecy", "politics"]},
+  {"title": "Ex Machina", "year": 2014, "runtime": 108, "genres": ["Sci-Fi", "Thriller", "Drama"], "tags": ["android", "ai", "identity", "isolation", "cerebral"]},
+  {"title": "Edge of Tomorrow", "year": 2014, "runtime": 113, "genres": ["Sci-Fi", "Action"], "tags": ["time", "aliens", "loop", "war", "epic"]},
+  {"title": "Gravity", "year": 2013, "runtime": 91, "genres": ["Sci-Fi", "Thriller", "Drama"], "tags": ["space", "survival", "isolation", "tense"]},
+
+  {"title": "Parasite", "year": 2019, "runtime": 132, "genres": ["Thriller", "Drama"], "tags": ["class", "satire", "twist", "korean", "dark"]},
+  {"title": "Knives Out", "year": 2019, "runtime": 130, "genres": ["Mystery", "Comedy", "Thriller"], "tags": ["whodunit", "ensemble", "satire", "twist", "witty"]},
+  {"title": "Prisoners", "year": 2013, "runtime": 153, "genres": ["Thriller", "Mystery", "Drama"], "tags": ["kidnapping", "moral", "dark", "slow-burn", "tense"]},
+  {"title": "Gone Girl", "year": 2014, "runtime": 149, "genres": ["Thriller", "Mystery", "Drama"], "tags": ["marriage", "twist", "dark", "media", "manipulation"]},
+  {"title": "Zodiac", "year": 2007, "runtime": 157, "genres": ["Thriller", "Mystery", "Crime"], "tags": ["serial-killer", "investigation", "slow-burn", "obsession", "true-story"]},
+  {"title": "Se7en", "year": 1995, "runtime": 127, "genres": ["Thriller", "Mystery", "Crime"], "tags": ["serial-killer", "noir", "dark", "investigation", "twist"]},
+
+  {"title": "Whiplash", "year": 2014, "runtime": 106, "genres": ["Drama", "Music"], "tags": ["music", "obsession", "mentor", "tense", "ambition"]},
+  {"title": "The Social Network", "year": 2010, "runtime": 120, "genres": ["Drama", "Biography"], "tags": ["tech", "ambition", "betrayal", "true-story", "witty"]},
+  {"title": "La La Land", "year": 2016, "runtime": 128, "genres": ["Drama", "Music", "Romance"], "tags": ["music", "ambition", "love", "bittersweet", "dreams"]},
+  {"title": "Marriage Story", "year": 2019, "runtime": 137, "genres": ["Drama", "Romance"], "tags": ["marriage", "divorce", "emotional", "intimate", "bittersweet"]},
+  {"title": "Manchester by the Sea", "year": 2016, "runtime": 137, "genres": ["Drama"], "tags": ["grief", "family", "emotional", "slow-burn", "bittersweet"]},
+
+  {"title": "Mad Max: Fury Road", "year": 2015, "runtime": 120, "genres": ["Action", "Adventure", "Sci-Fi"], "tags": ["dystopia", "desert", "chase", "epic", "survival"]},
+  {"title": "John Wick", "year": 2014, "runtime": 101, "genres": ["Action", "Thriller"], "tags": ["revenge", "assassin", "stylish", "noir", "tense"]},
+  {"title": "Mission: Impossible - Fallout", "year": 2018, "runtime": 147, "genres": ["Action", "Adventure", "Thriller"], "tags": ["spy", "stunts", "epic", "chase", "tense"]},
+  {"title": "Skyfall", "year": 2012, "runtime": 143, "genres": ["Action", "Adventure", "Thriller"], "tags": ["spy", "stylish", "epic", "revenge"]},
+
+  {"title": "Spirited Away", "year": 2001, "runtime": 125, "genres": ["Animation", "Adventure", "Fantasy"], "tags": ["coming-of-age", "magic", "japanese", "whimsical", "epic"]},
+  {"title": "Your Name", "year": 2016, "runtime": 106, "genres": ["Animation", "Romance", "Fantasy"], "tags": ["body-swap", "love", "japanese", "time", "bittersweet"]},
+  {"title": "Coco", "year": 2017, "runtime": 105, "genres": ["Animation", "Adventure", "Music"], "tags": ["family", "music", "afterlife", "heartwarming", "coming-of-age"]},
+  {"title": "Inside Out", "year": 2015, "runtime": 95, "genres": ["Animation", "Adventure", "Comedy"], "tags": ["emotions", "coming-of-age", "heartwarming", "family", "witty"]},
+  {"title": "Spider-Man: Into the Spider-Verse", "year": 2018, "runtime": 117, "genres": ["Animation", "Action", "Adventure"], "tags": ["superhero", "stylish", "coming-of-age", "witty", "multiverse"]},
+
+  {"title": "The Grand Budapest Hotel", "year": 2014, "runtime": 99, "genres": ["Comedy", "Adventure", "Drama"], "tags": ["whimsical", "stylish", "ensemble", "witty", "caper"]},
+  {"title": "Jojo Rabbit", "year": 2019, "runtime": 108, "genres": ["Comedy", "Drama", "War"], "tags": ["satire", "war", "coming-of-age", "witty", "bittersweet"]},
+  {"title": "The Nice Guys", "year": 2016, "runtime": 116, "genres": ["Comedy", "Crime", "Action"], "tags": ["noir", "buddy", "witty", "investigation", "stylish"]},
+
+  {"title": "Pride and Prejudice", "year": 2005, "runtime": 129, "genres": ["Romance", "Drama"], "tags": ["love", "period", "witty", "slow-burn", "literary"]},
+  {"title": "Call Me by Your Name", "year": 2017, "runtime": 132, "genres": ["Romance", "Drama"], "tags": ["love", "coming-of-age", "summer", "bittersweet", "intimate"]},
+  {"title": "Before Sunrise", "year": 1995, "runtime": 101, "genres": ["Romance", "Drama"], "tags": ["love", "talky", "intimate", "bittersweet", "walking"]}
+]

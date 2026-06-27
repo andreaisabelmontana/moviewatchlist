@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MovieWatchlist · Track what you've watched & what's next</title>
-<meta name="description" content="MovieWatchlist is a Flask app for tracking movies you've watched and want to watch, searching a film catalog, and getting simple recommendations. An interactive project showcase." />
+<title>MovieWatchlist · Track films & get content-based recommendations</title>
+<meta name="description" content="MovieWatchlist is a Python library + CLI: a SQLite-backed film watchlist and a content-based recommender (TF-IDF + cosine similarity over genres and tags). This page is an in-browser illustration over the real catalog." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -17,7 +17,6 @@
     --accent:#7a3ea8;     /* cinema purple */
     --gold:#c8902a;
     --good:#2f8f63;
-    --muted:#67637240;
     --muted2:#666272;
     --shadow:0 1px 0 rgba(0,0,0,.04), 0 18px 40px -28px rgba(20,18,26,.5);
     --r:14px;
@@ -43,7 +42,7 @@
   .kicker{font-family:"JetBrains Mono",monospace;font-size:.74rem;letter-spacing:.18em;
     text-transform:uppercase;color:var(--accent);margin:0 0 18px}
   .hero h1{font-size:clamp(2.4rem,5.4vw,4.2rem);margin:0 0 20px;max-width:15ch}
-  .hero p.lede{font-size:1.18rem;max-width:60ch;color:#28242f;margin:0 0 30px}
+  .hero p.lede{font-size:1.18rem;max-width:62ch;color:#28242f;margin:0 0 30px}
   .cta{display:flex;gap:12px;flex-wrap:wrap}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;
     font-weight:600;font-size:.9rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
@@ -60,7 +59,7 @@
     border-radius:999px;padding:6px 14px}
   .search input{border:none;outline:none;font-size:.86rem;width:100%;background:transparent;font-family:inherit}
   .counts{font-family:"JetBrains Mono",monospace;font-size:.74rem;color:var(--muted2)}
-  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px;max-height:520px;overflow-y:auto}
   @media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}}
   .movie{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
   .poster{aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;position:relative}
@@ -72,17 +71,18 @@
   .minfo{padding:9px 10px}
   .minfo .ti{font-weight:600;font-size:.84rem;line-height:1.2}
   .minfo .me{font-size:.72rem;color:var(--muted2);margin-top:2px}
-  .mbtn{display:flex;border-top:1px solid var(--line)}
+  .mbtn{display:flex;border-top:1px solid var(--line);margin-top:auto}
   .mbtn button{flex:1;border:none;background:#fff;font-size:.72rem;font-weight:600;padding:8px 4px;cursor:pointer;color:var(--muted2);transition:.12s}
   .mbtn button:first-child{border-right:1px solid var(--line)}
   .mbtn button.on-tw{background:var(--accent);color:#fff}
   .mbtn button.on-wd{background:var(--good);color:#fff}
   .empty{grid-column:1/-1;text-align:center;color:var(--muted2);padding:30px 0;font-size:.9rem}
-  .recos{padding:0 16px 18px}
+  .recos{padding:14px 16px 18px;border-top:1px solid var(--line);background:var(--paper-2)}
   .recos .lbl{font-family:"JetBrains Mono",monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
     color:var(--muted2);margin:0 0 8px}
   .recos .strip{display:flex;gap:8px;flex-wrap:wrap}
-  .reco{font-size:.78rem;padding:6px 11px;border-radius:999px;background:var(--paper-2);border:1px solid var(--line)}
+  .reco{font-size:.78rem;padding:6px 11px;border-radius:999px;background:#fff;border:1px solid var(--line)}
+  .reco .sc{font-family:"JetBrains Mono",monospace;color:var(--accent);font-size:.7rem}
   .reco.none{color:var(--muted2)}
 
   section{padding:74px 0;border-bottom:1px solid var(--line)}
@@ -97,6 +97,12 @@
   .card .ic{font-size:1.5rem}
   .card h3{font-size:1.14rem;margin:10px 0 6px}
   .card p{margin:0;font-size:.92rem;color:#403b48}
+
+  pre.code{background:#1c1925;color:#e9e6f0;border-radius:var(--r);padding:20px 22px;overflow-x:auto;
+    font-family:"JetBrains Mono",monospace;font-size:.82rem;line-height:1.7;margin-top:28px}
+  pre.code .c{color:#9b94b0}
+  pre.code .k{color:#c79bff}
+  pre.code .s{color:#9ad4a0}
 
   .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
   .chip{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:.85rem;font-weight:500}
@@ -113,91 +119,211 @@
   <div class="wrap">
     <div class="brand">🎬 MovieWatchlist</div>
     <nav class="links">
+      <a href="#how">How it works</a>
       <a href="#features">Features</a>
-      <a href="#stack">Stack</a>
+      <a href="#code">Code</a>
     </nav>
   </div>
 </header>
 
 <div class="hero">
   <div class="wrap">
-    <p class="kicker">Flask Web App · TMDB · Deployed on Azure</p>
-    <h1>Keep track of every film — seen and unseen.</h1>
-    <p class="lede">MovieWatchlist lets you track the movies you've watched and the ones you want to watch, search a film catalog, and get simple recommendations based on your taste.</p>
+    <p class="kicker">Python library · CLI · content-based recommender</p>
+    <h1>Track every film — and get recommendations from your taste.</h1>
+    <p class="lede">MovieWatchlist is a SQLite-backed Python library and CLI for tracking watched and to-watch films. Its content-based recommender vectorises each film's genres and tags with TF-IDF and ranks unseen films by cosine similarity to a taste profile built from what you've rated highly.</p>
     <div class="cta">
-      <a class="btn" href="#features">See features →</a>
-      <a class="btn ghost" href="#stack">The stack</a>
+      <a class="btn" href="#how">How it works →</a>
+      <a class="btn ghost" href="https://github.com/andreaisabelmontana/moviewatchlist">View source</a>
     </div>
 
     <div class="demo" id="demo">
       <div class="top">
-        <div class="search"><span aria-hidden="true">🔍</span><input id="q" type="text" placeholder="Search films…" aria-label="Search films" /></div>
+        <div class="search"><span aria-hidden="true">🔍</span><input id="q" type="text" placeholder="Search the catalog…" aria-label="Search films" /></div>
         <div class="counts" id="counts"></div>
       </div>
       <div class="grid" id="grid"></div>
       <div class="recos">
-        <p class="lbl">Recommended for you</p>
+        <p class="lbl">Recommended for you · cosine similarity to your taste profile</p>
         <div class="strip" id="recos"></div>
       </div>
     </div>
-    <p style="font-size:.8rem;color:var(--muted2);margin-top:10px">↑ A scripted illustration — mark films “to watch” or “watched” and recommendations adapt to your taste.</p>
+    <p style="font-size:.8rem;color:var(--muted2);margin-top:10px">↑ A live, in-browser port of the recommender running over the project's real 34-film catalog (<code>data/catalog.json</code>). Mark films watched or to-watch — scores recompute as you go. The production engine is Python (scikit-learn TF-IDF); this page reimplements the same math in JavaScript so it runs on GitHub Pages.</p>
   </div>
 </div>
 
-<section id="features">
+<section id="how">
   <div class="wrap reveal">
-    <p class="eyebrow">01 — Features</p>
-    <h2>Your personal film diary.</h2>
+    <p class="eyebrow">01 — How the recommender works</p>
+    <h2>Content-based, from your ratings.</h2>
+    <p class="section-lede">No accounts, no collaborative filtering — recommendations come entirely from the content of films you rated and the weight you gave them.</p>
     <div class="grid3">
-      <div class="card"><div class="ic">🔖</div><h3>Watchlist</h3><p>Save the films you want to watch and come back to them later.</p></div>
-      <div class="card"><div class="ic">✅</div><h3>Watched history</h3><p>Mark what you've seen and build up your viewing history.</p></div>
-      <div class="card"><div class="ic">🔍</div><h3>Catalog search</h3><p>Search a film catalog (powered by TMDB) to find what to add.</p></div>
-      <div class="card"><div class="ic">✨</div><h3>Recommendations</h3><p>Get simple suggestions based on what you've watched.</p></div>
-      <div class="card"><div class="ic">🔐</div><h3>Accounts</h3><p>Your lists are private to your account.</p></div>
-      <div class="card"><div class="ic">📈</div><h3>Production-ready</h3><p>Tests with coverage, Docker, Prometheus metrics, Azure deploy.</p></div>
+      <div class="card"><div class="ic">🏷️</div><h3>1. Feature each film</h3><p>Every film becomes a bag of content features: its genres plus descriptive tags (e.g. <code>space</code>, <code>noir</code>, <code>coming-of-age</code>).</p></div>
+      <div class="card"><div class="ic">📐</div><h3>2. TF-IDF vectorise</h3><p>Features are TF-IDF–weighted across the whole catalog, so ubiquitous genres are down-weighted and rarer, more telling tags carry more signal.</p></div>
+      <div class="card"><div class="ic">🎯</div><h3>3. Build a taste profile</h3><p>Watched films are summed, each weighted by <code>rating − 6</code>. High ratings pull toward their content; low ratings push away.</p></div>
+      <div class="card"><div class="ic">📊</div><h3>4. Rank by similarity</h3><p>Unseen films are scored by cosine similarity to the profile. Already-watched films are excluded.</p></div>
+      <div class="card"><div class="ic">🔖</div><h3>5. Bias to watchlist</h3><p>Films you've flagged to-watch get a small bonus so the recommender can resurface things you already planned.</p></div>
+      <div class="card"><div class="ic">🗄️</div><h3>SQLite-backed</h3><p>Catalog and lists persist in SQLite; the same store powers the CLI and the recommender.</p></div>
     </div>
   </div>
 </section>
 
-<section id="stack">
+<section id="features">
   <div class="wrap reveal">
-    <p class="eyebrow">02 — Stack</p>
-    <h2>Built with.</h2>
+    <p class="eyebrow">02 — What it does</p>
+    <h2>A film diary with a brain.</h2>
+    <div class="grid3">
+      <div class="card"><div class="ic">✅</div><h3>Watched + rate</h3><p>Mark films watched and rate them 0–10; the <code>to_watch → watched</code> transition carries the rating.</p></div>
+      <div class="card"><div class="ic">🔖</div><h3>Watchlist</h3><p>Queue films you want to watch and filter the catalog by genre and year.</p></div>
+      <div class="card"><div class="ic">📈</div><h3>Stats</h3><p>Genre breakdown, average rating, and total runtime over everything you've watched.</p></div>
+      <div class="card"><div class="ic">✨</div><h3>Recommendations</h3><p>Content-based suggestions from your taste profile, excluding what you've already seen.</p></div>
+      <div class="card"><div class="ic">⌨️</div><h3>CLI</h3><p>An argparse CLI: <code>init</code>, <code>watch</code>, <code>towatch</code>, <code>list</code>, <code>stats</code>, <code>recommend</code>.</p></div>
+      <div class="card"><div class="ic">🧪</div><h3>Tested</h3><p>20 pytest tests covering CRUD, status transitions, persistence, stats, and recommendation quality.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="code">
+  <div class="wrap reveal">
+    <p class="eyebrow">03 — In Python</p>
+    <h2>The real engine.</h2>
+    <p class="section-lede">The interactive demo above mirrors this exactly — same catalog, same scoring.</p>
+<pre class="code"><span class="c"># load the catalog, rate some sci-fi highly, get recommendations</span>
+<span class="k">from</span> watchlist <span class="k">import</span> WatchlistStore, load_catalog_file
+<span class="k">from</span> watchlist.recommender <span class="k">import</span> ContentRecommender
+
+store = WatchlistStore(<span class="s">"films.db"</span>)
+load_catalog_file(store)
+
+store.mark_watched(<span class="s">"Interstellar"</span>, <span class="s">2014</span>, rating=<span class="s">9.5</span>)
+store.mark_watched(<span class="s">"The Matrix"</span>, <span class="s">1999</span>, rating=<span class="s">9.0</span>)
+store.mark_watched(<span class="s">"Arrival"</span>, <span class="s">2016</span>, rating=<span class="s">9.0</span>)
+store.add_to_watchlist(<span class="s">"Dune"</span>, <span class="s">2021</span>)
+
+<span class="k">for</span> r <span class="k">in</span> ContentRecommender(store).recommend(k=<span class="s">5</span>):
+    print(r.score, r.film.title)
+
+<span class="c"># 0.416  Dune (2021)            — surfaced from the watchlist</span>
+<span class="c"># 0.382  Edge of Tomorrow (2014)</span>
+<span class="c"># 0.369  Blade Runner 2049 (2017)</span>
+<span class="c"># 0.340  Gravity (2013)</span></pre>
     <div class="chips">
-      <span class="chip">🌶 Flask (Python)</span>
-      <span class="chip">🗄 PostgreSQL (Azure)</span>
-      <span class="chip">🎞 TMDB API</span>
-      <span class="chip">🧪 pytest + coverage</span>
-      <span class="chip">🐳 Docker</span>
-      <span class="chip">📊 Prometheus</span>
-      <span class="chip">☁️ Azure Web App</span>
+      <span class="chip">🐍 Python 3.10+</span>
+      <span class="chip">🗄 SQLite</span>
+      <span class="chip">📐 scikit-learn TF-IDF</span>
+      <span class="chip">🧮 NumPy · cosine similarity</span>
+      <span class="chip">⌨️ argparse CLI</span>
+      <span class="chip">🧪 pytest</span>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    MovieWatchlist · an interactive project showcase, built from scratch.
-    Catalog data in the demo is sample data.
+    MovieWatchlist · a Python watchlist + content-based recommender.
+    This page is a self-contained showcase; the recommendation engine is real Python — see the repository for the library, CLI, and tests.
   </div>
 </footer>
 
 <script>
-  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.15});
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  const MOVIES=[
-    {t:'Interstellar',y:2014,r:8.6,g:'Sci-fi',c:'linear-gradient(160deg,#1b2a4a,#37557f)',e:'🚀'},
-    {t:'Parasite',y:2019,r:8.5,g:'Thriller',c:'linear-gradient(160deg,#2a2a2a,#5a4a3a)',e:'🏠'},
-    {t:'Spirited Away',y:2001,r:8.6,g:'Animation',c:'linear-gradient(160deg,#2f6f5e,#6fae8f)',e:'🐉'},
-    {t:'The Matrix',y:1999,r:8.7,g:'Sci-fi',c:'linear-gradient(160deg,#0e2a12,#1f6b2f)',e:'💊'},
-    {t:'Amélie',y:2001,r:8.3,g:'Romance',c:'linear-gradient(160deg,#7a2f3a,#c4622a)',e:'💛'},
-    {t:'Whiplash',y:2014,r:8.5,g:'Drama',c:'linear-gradient(160deg,#3a2f12,#a8862a)',e:'🥁'},
-    {t:'Coco',y:2017,r:8.4,g:'Animation',c:'linear-gradient(160deg,#5a2f7a,#c4622a)',e:'🎸'},
-    {t:'Knives Out',y:2019,r:7.9,g:'Mystery',c:'linear-gradient(160deg,#2a3a2a,#6a7a4a)',e:'🔪'},
+  // ---- The real catalog (data/catalog.json), embedded so the page is self-contained ----
+  const CATALOG=[
+    {t:"Interstellar",y:2014,g:["Sci-Fi","Adventure","Drama"],tg:["space","time","father-daughter","physics","epic"],e:"🚀",c:"linear-gradient(160deg,#1b2a4a,#37557f)"},
+    {t:"The Matrix",y:1999,g:["Sci-Fi","Action"],tg:["dystopia","simulation","philosophy","cyberpunk","chosen-one"],e:"💊",c:"linear-gradient(160deg,#0e2a12,#1f6b2f)"},
+    {t:"Blade Runner 2049",y:2017,g:["Sci-Fi","Drama","Mystery"],tg:["dystopia","android","noir","identity","slow-burn"],e:"🌆",c:"linear-gradient(160deg,#3a1f0a,#a8632a)"},
+    {t:"Arrival",y:2016,g:["Sci-Fi","Drama","Mystery"],tg:["aliens","language","time","cerebral","first-contact"],e:"🛸",c:"linear-gradient(160deg,#1a2a2a,#3a6a6a)"},
+    {t:"Dune",y:2021,g:["Sci-Fi","Adventure"],tg:["space","desert","epic","prophecy","politics"],e:"🏜️",c:"linear-gradient(160deg,#5a3a1a,#c4862a)"},
+    {t:"Ex Machina",y:2014,g:["Sci-Fi","Thriller","Drama"],tg:["android","ai","identity","isolation","cerebral"],e:"🤖",c:"linear-gradient(160deg,#2a2a3a,#4a4a6a)"},
+    {t:"Edge of Tomorrow",y:2014,g:["Sci-Fi","Action"],tg:["time","aliens","loop","war","epic"],e:"⚔️",c:"linear-gradient(160deg,#2a3a3a,#4a6a5a)"},
+    {t:"Gravity",y:2013,g:["Sci-Fi","Thriller","Drama"],tg:["space","survival","isolation","tense"],e:"🌍",c:"linear-gradient(160deg,#0a1a3a,#2a4a7a)"},
+    {t:"Parasite",y:2019,g:["Thriller","Drama"],tg:["class","satire","twist","korean","dark"],e:"🏠",c:"linear-gradient(160deg,#2a2a2a,#5a4a3a)"},
+    {t:"Knives Out",y:2019,g:["Mystery","Comedy","Thriller"],tg:["whodunit","ensemble","satire","twist","witty"],e:"🔪",c:"linear-gradient(160deg,#2a3a2a,#6a7a4a)"},
+    {t:"Prisoners",y:2013,g:["Thriller","Mystery","Drama"],tg:["kidnapping","moral","dark","slow-burn","tense"],e:"🔦",c:"linear-gradient(160deg,#1a1a1a,#3a3a4a)"},
+    {t:"Gone Girl",y:2014,g:["Thriller","Mystery","Drama"],tg:["marriage","twist","dark","media","manipulation"],e:"🗞️",c:"linear-gradient(160deg,#1a2a3a,#3a4a5a)"},
+    {t:"Zodiac",y:2007,g:["Thriller","Mystery","Crime"],tg:["serial-killer","investigation","slow-burn","obsession","true-story"],e:"♋",c:"linear-gradient(160deg,#2a2a1a,#5a5a3a)"},
+    {t:"Se7en",y:1995,g:["Thriller","Mystery","Crime"],tg:["serial-killer","noir","dark","investigation","twist"],e:"📦",c:"linear-gradient(160deg,#1a1a1a,#3a2a2a)"},
+    {t:"Whiplash",y:2014,g:["Drama","Music"],tg:["music","obsession","mentor","tense","ambition"],e:"🥁",c:"linear-gradient(160deg,#3a2f12,#a8862a)"},
+    {t:"The Social Network",y:2010,g:["Drama","Biography"],tg:["tech","ambition","betrayal","true-story","witty"],e:"💻",c:"linear-gradient(160deg,#1a2a3a,#2a4a5a)"},
+    {t:"La La Land",y:2016,g:["Drama","Music","Romance"],tg:["music","ambition","love","bittersweet","dreams"],e:"🎹",c:"linear-gradient(160deg,#3a2a5a,#7a4a8a)"},
+    {t:"Marriage Story",y:2019,g:["Drama","Romance"],tg:["marriage","divorce","emotional","intimate","bittersweet"],e:"💔",c:"linear-gradient(160deg,#3a2a2a,#6a4a4a)"},
+    {t:"Manchester by the Sea",y:2016,g:["Drama"],tg:["grief","family","emotional","slow-burn","bittersweet"],e:"🌊",c:"linear-gradient(160deg,#1a2a3a,#3a5a6a)"},
+    {t:"Mad Max: Fury Road",y:2015,g:["Action","Adventure","Sci-Fi"],tg:["dystopia","desert","chase","epic","survival"],e:"🛻",c:"linear-gradient(160deg,#5a2a0a,#c4522a)"},
+    {t:"John Wick",y:2014,g:["Action","Thriller"],tg:["revenge","assassin","stylish","noir","tense"],e:"🔫",c:"linear-gradient(160deg,#1a1a1a,#3a2a3a)"},
+    {t:"Mission: Impossible - Fallout",y:2018,g:["Action","Adventure","Thriller"],tg:["spy","stunts","epic","chase","tense"],e:"🪂",c:"linear-gradient(160deg,#1a2a3a,#3a4a6a)"},
+    {t:"Skyfall",y:2012,g:["Action","Adventure","Thriller"],tg:["spy","stylish","epic","revenge"],e:"🕴️",c:"linear-gradient(160deg,#1a1a2a,#3a3a5a)"},
+    {t:"Spirited Away",y:2001,g:["Animation","Adventure","Fantasy"],tg:["coming-of-age","magic","japanese","whimsical","epic"],e:"🐉",c:"linear-gradient(160deg,#2f6f5e,#6fae8f)"},
+    {t:"Your Name",y:2016,g:["Animation","Romance","Fantasy"],tg:["body-swap","love","japanese","time","bittersweet"],e:"🌠",c:"linear-gradient(160deg,#2a3a7a,#5a6aba)"},
+    {t:"Coco",y:2017,g:["Animation","Adventure","Music"],tg:["family","music","afterlife","heartwarming","coming-of-age"],e:"🎸",c:"linear-gradient(160deg,#5a2f7a,#c4622a)"},
+    {t:"Inside Out",y:2015,g:["Animation","Adventure","Comedy"],tg:["emotions","coming-of-age","heartwarming","family","witty"],e:"🧠",c:"linear-gradient(160deg,#2a5a7a,#5a9aba)"},
+    {t:"Spider-Man: Into the Spider-Verse",y:2018,g:["Animation","Action","Adventure"],tg:["superhero","stylish","coming-of-age","witty","multiverse"],e:"🕸️",c:"linear-gradient(160deg,#7a1a3a,#c43a6a)"},
+    {t:"The Grand Budapest Hotel",y:2014,g:["Comedy","Adventure","Drama"],tg:["whimsical","stylish","ensemble","witty","caper"],e:"🏨",c:"linear-gradient(160deg,#7a3a5a,#c46a8a)"},
+    {t:"Jojo Rabbit",y:2019,g:["Comedy","Drama","War"],tg:["satire","war","coming-of-age","witty","bittersweet"],e:"🐰",c:"linear-gradient(160deg,#5a3a2a,#a86a4a)"},
+    {t:"The Nice Guys",y:2016,g:["Comedy","Crime","Action"],tg:["noir","buddy","witty","investigation","stylish"],e:"🕵️",c:"linear-gradient(160deg,#3a2a1a,#6a4a2a)"},
+    {t:"Pride and Prejudice",y:2005,g:["Romance","Drama"],tg:["love","period","witty","slow-burn","literary"],e:"💌",c:"linear-gradient(160deg,#3a4a3a,#6a7a5a)"},
+    {t:"Call Me by Your Name",y:2017,g:["Romance","Drama"],tg:["love","coming-of-age","summer","bittersweet","intimate"],e:"🍑",c:"linear-gradient(160deg,#6a5a1a,#baa44a)"},
+    {t:"Before Sunrise",y:1995,g:["Romance","Drama"],tg:["love","talky","intimate","bittersweet","walking"],e:"🌅",c:"linear-gradient(160deg,#5a3a4a,#a86a7a)"},
   ];
-  // status: undefined | 'tw' (to-watch) | 'wd' (watched)
+
+  // ---- Content-based recommender, mirroring watchlist/recommender.py ----
+  // 1) build vocabulary of features (genres + tags) across the catalog
+  const docs = CATALOG.map(m=>[...m.g, ...m.tg]);
+  const df = {};                       // document frequency
+  docs.forEach(d=>{ new Set(d).forEach(f=> df[f]=(df[f]||0)+1 ); });
+  const N = CATALOG.length;
+  // 2) TF-IDF vector per film (sublinear-tf off; raw tf=1 per feature, l2-normalised)
+  function tfidf(doc){
+    const v={};
+    doc.forEach(f=>{ const idf=Math.log((1+N)/(1+df[f]))+1; v[f]=(v[f]||0)+idf; });
+    let norm=Math.sqrt(Object.values(v).reduce((s,x)=>s+x*x,0))||1;
+    Object.keys(v).forEach(k=>v[k]/=norm);
+    return v;
+  }
+  const VEC = docs.map(tfidf);
+  function dot(a,b){ let s=0; for(const k in a){ if(b[k]) s+=a[k]*b[k]; } return s; }
+
+  const NEUTRAL=6.0, DEFAULT_W=0.5, TW_BONUS=0.15;
+  // status[i] = {st:'wd'|'tw', r: rating|null}
   const status={};
+
+  function profile(){
+    const acc={};
+    let any=false;
+    CATALOG.forEach((m,i)=>{
+      const s=status[i];
+      if(!s || s.st!=='wd') return;
+      let w = s.r==null ? DEFAULT_W : (s.r - NEUTRAL);
+      if(w===0) return;
+      any=true;
+      const v=VEC[i];
+      for(const k in v) acc[k]=(acc[k]||0)+v[k]*w;
+    });
+    if(!any) return null;
+    let norm=Math.sqrt(Object.values(acc).reduce((s,x)=>s+x*x,0));
+    if(norm===0) return null;
+    Object.keys(acc).forEach(k=>acc[k]/=norm);
+    return acc;
+  }
+
+  function recommend(k=5){
+    const p=profile();
+    if(!p) return [];
+    const out=[];
+    CATALOG.forEach((m,i)=>{
+      const s=status[i];
+      if(s && s.st==='wd') return;            // never recommend watched
+      const onTW = s && s.st==='tw';
+      let score=dot(p,VEC[i]);
+      if(onTW) score+=TW_BONUS;
+      if(score<=0) return;
+      out.push({m,score});
+    });
+    out.sort((a,b)=> b.score-a.score || a.m.t.localeCompare(b.m.t));
+    return out.slice(0,k);
+  }
+
+  // ---- rendering ----
   const grid=document.getElementById('grid');
   const counts=document.getElementById('counts');
   const recos=document.getElementById('recos');
@@ -205,39 +331,53 @@
 
   function card(m,i){
     const s=status[i];
-    const badge = s==='tw'?'<span class="badge tw">TO WATCH</span>':s==='wd'?'<span class="badge wd">WATCHED</span>':'';
+    const badge = s&&s.st==='tw'?'<span class="badge tw">TO WATCH</span>':s&&s.st==='wd'?'<span class="badge wd">WATCHED</span>':'';
+    const rate = s&&s.st==='wd'&&s.r!=null?`<span class="rate">★ ${s.r.toFixed(1)}</span>`:'';
     return `<div class="movie" data-i="${i}">
-      <div class="poster" style="background:${m.c}">${m.e}<span class="rate">★ ${m.r}</span>${badge}</div>
-      <div class="minfo"><div class="ti">${m.t}</div><div class="me">${m.y} · ${m.g}</div></div>
+      <div class="poster" style="background:${m.c}">${m.e}${rate}${badge}</div>
+      <div class="minfo"><div class="ti">${m.t}</div><div class="me">${m.y} · ${m.g.join(', ')}</div></div>
       <div class="mbtn">
-        <button data-act="tw" class="${s==='tw'?'on-tw':''}">＋ Watchlist</button>
-        <button data-act="wd" class="${s==='wd'?'on-wd':''}">✓ Watched</button>
+        <button data-act="tw" class="${s&&s.st==='tw'?'on-tw':''}">＋ Watchlist</button>
+        <button data-act="wd" class="${s&&s.st==='wd'?'on-wd':''}">✓ Watched</button>
       </div></div>`;
   }
   function render(){
     const term=q.value.trim().toLowerCase();
-    const items=MOVIES.map((m,i)=>({m,i})).filter(({m})=>!term||(m.t+' '+m.g).toLowerCase().includes(term));
+    const items=CATALOG.map((m,i)=>({m,i})).filter(({m})=>!term||(m.t+' '+m.g.join(' ')+' '+m.tg.join(' ')).toLowerCase().includes(term));
     grid.innerHTML = items.length? items.map(({m,i})=>card(m,i)).join('') : '<div class="empty">No films match your search.</div>';
-    const tw=Object.values(status).filter(v=>v==='tw').length, wd=Object.values(status).filter(v=>v==='wd').length;
+    const tw=Object.values(status).filter(v=>v.st==='tw').length, wd=Object.values(status).filter(v=>v.st==='wd').length;
     counts.textContent=`🔖 ${tw} to watch · ✓ ${wd} watched`;
     renderRecos();
   }
   function renderRecos(){
-    // favourite genres = genres of watched films
-    const fav=new Set(MOVIES.filter((m,i)=>status[i]==='wd').map(m=>m.g));
-    let recs=MOVIES.map((m,i)=>({m,i})).filter(({m,i})=>!status[i] && fav.has(m.g)).slice(0,4);
-    if(!recs.length){ recos.innerHTML='<span class="reco none">Mark a film as watched to get recommendations.</span>'; return; }
-    recos.innerHTML=recs.map(({m})=>`<span class="reco">${m.e} ${m.t} <span style="color:var(--muted2)">· ${m.g}</span></span>`).join('');
+    const recs=recommend(5);
+    if(!recs.length){ recos.innerHTML='<span class="reco none">Mark a film watched (and rate it) to get recommendations.</span>'; return; }
+    recos.innerHTML=recs.map(({m,score})=>`<span class="reco">${m.e} ${m.t} <span class="sc">${score.toFixed(3)}</span></span>`).join('');
   }
+
+  // clicking a film: rating prompt when marking watched
   grid.addEventListener('click',e=>{
     const b=e.target.closest('button[data-act]'); if(!b) return;
     const i=+b.closest('.movie').dataset.i; const act=b.dataset.act;
-    status[i] = status[i]===act ? undefined : act;
+    const cur=status[i];
+    if(cur && cur.st===act){ delete status[i]; render(); return; }
+    if(act==='wd'){
+      const ans=prompt(`Rate "${CATALOG[i].t}" 0–10 (blank = no rating):`, '8');
+      let r=null;
+      if(ans!==null && ans.trim()!==''){ const f=parseFloat(ans); if(!isNaN(f)) r=Math.max(0,Math.min(10,f)); }
+      status[i]={st:'wd', r};
+    } else {
+      status[i]={st:'tw', r:null};
+    }
     render();
   });
   q.addEventListener('input',render);
-  // seed: Parasite + The Matrix watched, Coco on the watchlist → recommends unseen Sci-fi (Interstellar)
-  status[1]='wd'; status[3]='wd'; status[6]='tw';
+
+  // seed: the demo.py profile — cerebral sci-fi rated high, La La Land disliked, Dune queued
+  function seed(t,st,r){ const i=CATALOG.findIndex(m=>m.t===t); if(i>=0) status[i]={st,r}; }
+  seed('Interstellar','wd',9.5); seed('The Matrix','wd',9.0); seed('Arrival','wd',9.0);
+  seed('Ex Machina','wd',8.5); seed('Whiplash','wd',6.0); seed('La La Land','wd',4.0);
+  seed('Dune','tw',null); seed('Before Sunrise','tw',null);
   render();
 </script>
 </body>
